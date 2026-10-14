@@ -1,0 +1,16 @@
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/ApplicationRun.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/config/BusinessComponentScan.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/config/PlatformComponentScan.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/config/SwaggerSecurityConfig.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/constants/UserMgmtConstants.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/controller/TestController.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/exceptions/GlobalExceptionHandlerAdviceController.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/interceptor/ApiLifeCycleLogTracer.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/interceptor/UserMgmtServiceInterceptor.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/interceptor/UserMgmtServiceInterceptorConfig.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/pojo/MultiResourceAuthorizationRequest.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/pojo/MultiResourceAuthorizationResponse.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/pojo/MultiResourceAuthorizationResponseWrapper.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/pojo/ResourceAuthorizationRequest.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/pojo/ResourceAuthorizationResponse.java
+/home/vassar/workspace/test/springbootApp/src/main/java/com/vassarlabs/application/service/UserMgmtRestTemplateService.java

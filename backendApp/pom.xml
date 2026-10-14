@@ -1,0 +1,1026 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+        <modelVersion>4.0.0</modelVersion>
+
+    <!-- No <parent> before this change: this file manually re-implemented Boot 3.5.16's own
+         dependencyManagement piece by piece (spring-framework-bom, jackson-bom, log4j-bom,
+         netty-bom imports, each pinned via a property tracking Boot's own value by hand) since
+         it had no Boot parent to inherit it from. platform-bom (parent below,
+         itself parented on spring-boot-starter-parent:3.5.16) now supplies all of that
+         transitively, so the manual re-implementation is removed - repo-wide dependency audit.
+         Packaging stays plain jar (maven-assembly-plugin builds the fat jar, not
+         spring-boot-maven-plugin), so inheriting Boot's parent adds no repackaging behavior. -->
+    <parent>
+		<groupId>com.vassarlabs</groupId>
+		<artifactId>platform-bom</artifactId>
+		<version>2.0.0</version>
+		<relativePath/>
+	</parent>
+
+	<groupId>com.vassarlabs.iwm</groupId>
+	<artifactId>backendApp</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+    <properties>
+		<java.version>21</java.version>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<javac.target>21</javac.target>
+		<javac.source>21</javac.source>
+		<!-- Vassarlabs -->
+		<vassarlabs.version>0.0.1-SNAPSHOT</vassarlabs.version>
+
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+    </properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- Duplicate APIs pulled in transitively by several internal (wrims-core-*/platform-*) and third-party
+			     modules. Managed as 'provided' so they never reach the runtime classpath or packaged jar;
+			     the listed replacement provides the same classes. Versions kept explicit (matching the
+			     BOM's own pins) because this is a scope override, not a version pin. -->
+			<dependency> <!-- superseded by jakarta.xml.bind:jakarta.xml.bind-api 2.3.3 -->
+				<groupId>javax.xml.bind</groupId>
+				<artifactId>jaxb-api</artifactId>
+				<version>2.3.1</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency> <!-- superseded by com.sun.activation:jakarta.activation -->
+				<groupId>javax.activation</groupId>
+				<artifactId>javax.activation-api</artifactId>
+				<version>1.2.0</version>
+				<scope>provided</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<plugins>
+			<!-- any other plugins -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>single</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<!-- Need vendor names to be specified, for the working some libraries 
+						(eg., javax jai) -->
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Specification-Vendor>vassarlabs</Specification-Vendor>
+							<Implementation-Vendor>vassarlabs</Implementation-Vendor>
+						</manifestEntries>
+					</archive>
+					<descriptorRefs>
+						<descriptorRef>jar-with-dependencies</descriptorRef>
+					</descriptorRefs>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-archetype-plugin</artifactId>
+				<version>3.2.0</version>
+			</plugin>
+		</plugins>
+	</build>
+	
+  <repositories>
+    <!-- repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <id>bonecp-repo</id>
+      <name>BoneCP Repository</name>
+      <url>http://jolbox.com/bonecp/downloads/maven</url>
+    </repository-->
+
+	  <repository>
+		  <id>maven2-repository.dev.java.net</id>
+		  <name>Java.net repository</name>
+		  <url>https://download.java.net/maven/2</url>
+	  </repository>
+    <repository>
+      <id>osgeo</id>
+      <name>Open Source Geospatial Foundation Repository</name>
+      <url>http://download.osgeo.org/webdav/geotools/</url>
+    </repository>
+    <repository>
+      <id>osgeo-alt</id>
+      <name>OSGeo Release Repository</name>
+      <url>https://repo.osgeo.org/repository/release/</url>
+      <snapshots><enabled>false</enabled></snapshots>
+      <releases><enabled>true</enabled></releases>
+    </repository>
+    <repository>
+       <id>geomajas</id>
+       <name>Geomajas Maven Repository</name>
+       <url>http://maven.geomajas.org/(http://maven.geomajas.org/)</url>
+    </repository>
+	  <repository>
+		  <id>geosolutions</id>
+		  <url>https://maven.geo-solutions.it/</url>
+	  </repository>
+  </repositories>
+
+    <dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot</artifactId>
+			<!-- version managed by platform-bom BOM's own <parent> (spring-boot-starter-parent) -->
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<!-- version managed by platform-bom BOM's own <parent> (spring-boot-starter-parent) -->
+		</dependency>
+		<!-- Boot 2.3+: no longer included in spring-boot-starter-web -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+			<!-- version managed by platform-bom BOM's own <parent> (spring-boot-starter-parent) -->
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter</artifactId>
+			<!-- version managed by platform-bom BOM's own <parent> (spring-boot-starter-parent) -->
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework.boot</groupId>
+					<artifactId>spring-boot-starter-logging</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+    		<!-- Spring and Transactions -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-websocket</artifactId>
+			<!-- version managed by platform-bom BOM's own <parent> (spring-boot-starter-parent) -->
+		</dependency>
+
+		<!-- JAXB (jakarta.xml.bind namespace, as used by wrims-core-platform); versions match Spring Boot 3.5.16 -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>com.jolbox</groupId>
+			<artifactId>bonecp</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+		</dependency>
+		<!-- Apache Cassandra Java driver 4.x -->
+		<dependency>
+			<groupId>org.apache.cassandra</groupId>
+			<artifactId>java-driver-core</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cassandra</groupId>
+			<artifactId>java-driver-query-builder</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.mygreen</groupId>
+			<artifactId>super-csv-annotation</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>javassist</groupId>
+					<artifactId>javassist</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-java</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-streaming-java</artifactId>
+			<!-- version managed by platform-bom BOM -->
+			<!--scope>provided</scope-->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-clients</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-kafka</artifactId>
+			<!-- version managed by platform-bom BOM (released separately from Flink
+			     since 1.15, so it doesn't track apache-flink.version) -->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.flink</groupId>
+			<artifactId>flink-connector-base</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.poi</groupId>
+			<artifactId>poi-ooxml</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.kafka</groupId>
+			<artifactId>kafka-clients</artifactId>
+			<!-- version managed by platform-bom BOM -->
+			<!-- <version>0.8.1.1</version> -->
+			<exclusions>
+				<exclusion>
+					<groupId>javax.jms</groupId>
+					<artifactId>jms</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jdmk</groupId>
+					<artifactId>jmxtools</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.jmx</groupId>
+					<artifactId>jmxri</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-simple</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.apache.zookeeper</groupId>
+					<artifactId>zookeeper</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.101tec</groupId>
+					<artifactId>zkclient</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.apache.storm/storm-core -->
+		<dependency>
+			<groupId>org.apache.storm</groupId>
+			<artifactId>storm-core</artifactId>
+			<!-- version managed by platform-bom BOM -->
+			<!--scope>provided</scope-->
+			<exclusions>
+				<!-- SLF4J 1.x binding; SLF4J 2 uses log4j-slf4j2-impl (declared below) -->
+				<exclusion>
+					<groupId>org.apache.logging.log4j</groupId>
+					<artifactId>log4j-slf4j-impl</artifactId>
+				</exclusion>
+                                <exclusion>
+                                        <groupId>org.apache.zookeeper</groupId>
+                                        <artifactId>zookeeper</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                        <groupId>org.slf4j</groupId>
+                                        <artifactId>log4j-over-slf4j</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-classic</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-core</artifactId>
+                                </exclusion>
+
+				<exclusion>
+					<groupId>javax.servlet</groupId>
+					<artifactId>javax.servlet-api</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.storm</groupId>
+			<artifactId>storm-kafka-client</artifactId>
+			<!-- version managed by platform-bom BOM -->
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+                                <exclusion>
+                                        <groupId>org.apache.zookeeper</groupId>
+                                        <artifactId>zookeeper</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-classic</artifactId>
+                                </exclusion>
+                                <exclusion>
+                                        <groupId>ch.qos.logback</groupId>
+                                        <artifactId>logback-core</artifactId>
+                                </exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>com.101tec</groupId>
+			<artifactId>zkclient</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.apache.zookeeper</groupId>
+					<artifactId>zookeeper</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.curator</groupId>
+			<artifactId>curator-test</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.jboss.netty</groupId>
+					<artifactId>netty</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<!-- SLF4J 2 binding for Log4j 2 (log4j-slf4j-impl only binds SLF4J 1.x); version from log4j-bom -->
+		<dependency>
+			<groupId>org.apache.logging.log4j</groupId>
+			<artifactId>log4j-slf4j2-impl</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<!--dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>${logback.version}</version>
+		</dependency-->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-java</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+
+		<dependency>
+			<groupId>uk.com.robust-it</groupId>
+			<artifactId>cloning</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.quartz-scheduler</groupId>
+			<artifactId>quartz</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.quartz-scheduler</groupId>
+			<artifactId>quartz-jobs</artifactId>
+		</dependency>
+
+		<!-- Provides support for shapefiles -->
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-shapefile</artifactId>
+			<!-- version managed by platform-bom BOM (29.2) -->
+		</dependency>
+		<!-- Provides GUI components -->
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-swing</artifactId>
+			<!-- version managed by platform-bom BOM (29.2) -->
+		</dependency>
+		<dependency>
+			<groupId>org.locationtech.jts.io</groupId>
+			<artifactId>jts-io-common</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-referencing</artifactId>
+			<!-- version managed by platform-bom BOM (29.2) -->
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-epsg-hsql</artifactId>
+			<!-- version managed by platform-bom BOM (29.2) -->
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-epsg-extension</artifactId>
+			<!-- version managed by platform-bom BOM (29.2) -->
+		</dependency>
+		<dependency>
+			<groupId>com.vividsolutions</groupId>
+			<artifactId>jts</artifactId>
+		</dependency>
+
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <!-- version managed by platform-bom BOM (2.2, not Boot's 2.4 - deliberate, see BOM comment) -->
+        </dependency>
+
+        <dependency>
+           <groupId>org.jsoup</groupId>
+           <artifactId>jsoup</artifactId>
+           <!-- version managed by platform-bom BOM -->
+        </dependency>
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-yield</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <!-- version managed by platform-bom BOM -->
+                <exclusions>
+                        <exclusion>
+                                <groupId>com.google.guava</groupId>
+                                <artifactId>guava</artifactId>
+                        </exclusion>
+                </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.xml.soap</groupId>
+            <artifactId>javax.xml.soap-api</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+        </dependency>
+
+	    <dependency>
+			<groupId>edu.ucar</groupId>
+			<artifactId>netcdfAll</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.locationtech.jts</groupId>
+			<artifactId>jts-core</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.api-client</groupId>
+			<artifactId>google-api-client</artifactId>
+			<!-- version managed by platform-bom BOM (2.5.1 - was 1.28.0 here, a
+			     major version behind springbootApp's own hardcoded 2.5.1; unified) -->
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>fontbox</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>jempbox</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>xmpbox</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>preflight</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox-tools</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.dhorions</groupId>
+			<artifactId>boxable</artifactId>
+		</dependency>
+
+
+        <dependency>
+            <artifactId>wrims-core-platform</artifactId>
+            <groupId>com.vassarlabs.wrims</groupId>
+            <version>2.0.1-SNAPSHOT</version>
+            <!-- legacy javax.mail 1.4.7 from platform-scrapers-api; the platform now uses jakarta.mail (angus-mail) -->
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.mail</groupId>
+                    <artifactId>mail</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>javax.activation</groupId>
+                    <artifactId>activation</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+		<!--<dependency>
+			<artifactId>wrims-core-boundarydetection</artifactId>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+
+<!--        <dependency>-->
+<!--            <artifactId>proj-iwm-boundarydetection-service</artifactId>-->
+<!--            <groupId>com.vassarlabs.iwm.boundarydetection.service</groupId>-->
+<!--            <version>0.0.1-SNAPSHOT</version>-->
+<!--        </dependency>-->
+
+		<!--<dependency>
+			<artifactId>wrims-core-sdp</artifactId>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-cropanalysis</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+
+		<!-- https://mvnrepository.com/artifact/it.geosolutions/geoserver-manager -->
+		<dependency>
+			<groupId>it.geosolutions</groupId>
+			<artifactId>geoserver-manager</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
+			<scope>compile</scope>
+		</dependency>
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-pictorialanalysis</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-forecast</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-geojson-core</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-geojson</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-rainfall</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-temperature</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-humidity</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-peststress</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<!--		crop stress module needs soilmoisture, vicmodel, et and rainfall as dependency-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-cropstress</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-soilmoisture</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-vicmodel</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-et</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+<!--		<dependency>-->
+<!--			<groupId>com.vassarlabs.wrims</groupId>-->
+<!--			<artifactId>wrims-core-wbis</artifactId>-->
+<!--			<version>1.0.1-SNAPSHOT</version>-->
+<!--		</dependency>-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-wind</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.analytics</groupId>
+			<artifactId>google-analytics-data</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<!-- duplicate com.google.protobuf:protobuf-java declaration removed (was 3.9.1 here,
+		     3.11.4 above); repo-wide dependency audit -->
+		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+		<dependency>
+			<groupId>net.lingala.zip4j</groupId>
+			<artifactId>zip4j</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+
+
+		<!-- Dependencies for elastic search -->
+		<dependency>
+			<groupId>org.elasticsearch.client</groupId>
+			<artifactId>elasticsearch-rest-client</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.elasticsearch</groupId>
+			<artifactId>elasticsearch</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/io.minio/minio -->
+		<dependency>
+			<groupId>io.minio</groupId>
+			<artifactId>minio</artifactId>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/software.amazon.awssdk/s3 -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<!-- version managed by platform-bom BOM -->
+			<scope>compile</scope>
+		</dependency>
+
+        <!--	run off    -->
+        <!--<dependency>
+            <groupId>com.vassarlabs.wrims</groupId>
+            <artifactId>wrims-core-runoff</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
+        </dependency>-->
+
+
+        <!--		water stress   -->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-waterstress</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-cropwaterdemand</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-farmmechanization</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-cropsowing</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+
+		<!--<dependency>
+			<groupId>com.vassarlabs.wrims</groupId>
+			<artifactId>wrims-core-soilhealthcard</artifactId>
+			<version>1.0.1-SNAPSHOT</version>
+		</dependency>-->
+
+		<!-- Azure Blob Dependencies -->
+		<dependency>
+			<groupId>com.azure</groupId>
+			<artifactId>azure-core</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>io.projectreactor</groupId>
+					<artifactId>reactor-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.dataformat</groupId>
+					<artifactId>jackson-dataformat-xml</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.azure</groupId>
+			<artifactId>azure-storage-blob</artifactId>
+			<exclusions>
+				<!-- Collision with Kafka Jackson dependencies -->
+				<exclusion>
+					<groupId>com.azure</groupId>
+					<artifactId>azure-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-annotations</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.core</groupId>
+					<artifactId>jackson-databind</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.dataformat</groupId>
+					<artifactId>jackson-dataformat-xml</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.fasterxml.jackson.datatype</groupId>
+					<artifactId>jackson-datatype-jsr310</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-codec-http</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.projectreactor</groupId>
+					<artifactId>reactor-core</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-all</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-codec</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.netty</groupId>
+					<artifactId>netty-transport-native-epoll</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>io.projectreactor.netty</groupId>
+					<artifactId>reactor-netty-http</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+			<scope>compile</scope><!-- Choose a compatible version -->
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-tcnative-boringssl-static</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.firebase</groupId>
+			<artifactId>firebase-admin</artifactId>
+		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>com.google.auth</groupId>-->
+<!--			<artifactId>google-auth-library-oauth2-http</artifactId>-->
+<!--			<version>1.19.0</version>-->
+<!--		</dependency>-->
+		<!-- Azure Blob Dependencies End -->
+		<dependency>
+			<groupId>me.xdrop</groupId>
+			<artifactId>fuzzywuzzy</artifactId>
+		</dependency>
+
+		<!-- For in-memory caching with TTL -->
+<!--		<dependency>-->
+<!--			<groupId>com.google.guava</groupId>-->
+<!--			<artifactId>guava</artifactId>-->
+<!--			<version>18.0</version>-->
+<!--		</dependency>-->
+
+		<!-- I TEXT PDF DEPENDENCY -->
+		<dependency>
+			<groupId>com.itextpdf</groupId>
+			<artifactId>itextpdf</artifactId>
+		</dependency>
+
+        <!-- ONNX Runtime -->
+        <dependency>
+            <groupId>com.microsoft.onnxruntime</groupId>
+            <artifactId>onnxruntime</artifactId>
+        </dependency>
+
+        <!-- Hugging Face Tokenizer -->
+        <dependency>
+            <groupId>ai.djl.huggingface</groupId>
+            <artifactId>tokenizers</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+        </dependency>
+
+        <!-- Redis -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <!-- version managed by platform-bom BOM's own <parent> (spring-boot-starter-parent) -->
+        </dependency>
+
+        <!-- Spring Cache -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+            <!-- version managed by platform-bom BOM's own <parent> (spring-boot-starter-parent) -->
+        </dependency>
+
+		<!-- Uber's H3 -->
+		<dependency>
+			<groupId>com.uber</groupId>
+			<artifactId>h3</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.geometry</groupId>
+			<artifactId>s2-geometry</artifactId>
+		</dependency>
+
+		
+		
+		<dependency>
+			<groupId>org.roaringbitmap</groupId>
+			<artifactId>RoaringBitmap</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>net.openhft</groupId>
+			<artifactId>zero-allocation-hashing</artifactId>
+		</dependency>
+
+
+
+		<!-- duplicate software.amazon.awssdk:s3 declaration removed - already declared above with
+		     scope=compile; repo-wide dependency audit -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3-transfer-manager</artifactId>
+			<!-- version managed by platform-bom BOM -->
+		</dependency>
+	</dependencies>
+
+</project>

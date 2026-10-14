@@ -1,0 +1,73 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN  apt-get update \
+  && apt-get install -y wget && apt-get install -y gnupg && apt-get install -y software-properties-common && yes | ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && echo Asia/Kolkata > /etc/timezone && yes | apt-get install vim
+
+RUN yes | apt-get install curl
+
+RUN yes | apt-get install openjdk-11-jdk-headless
+
+RUN yes | wget https://archive.apache.org/dist/kafka/3.0.0/kafka_2.12-3.0.0.tgz
+RUN yes | tar -xzvf kafka_2.12-3.0.0.tgz
+
+RUN yes | wget https://archive.apache.org/dist/flink/flink-1.14.0/flink-1.14.0-bin-scala_2.12.tgz
+RUN yes | tar -xzvf flink-1.14.0-bin-scala_2.12.tgz
+
+RUN add-apt-repository universe
+RUN apt update
+RUN yes | apt install python2.7
+RUN yes | apt install python-numpy
+RUN yes | update-alternatives --install /usr/bin/python python /usr/bin/python2 1
+RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py --output get-pip.py
+RUN python2 get-pip.py
+RUN pip2 install scipy
+
+RUN yes | apt install cdo
+RUN yes | apt install imagemagick
+
+
+RUN yes | wget https://confluence.ecmwf.int/download/attachments/45757960/eccodes-2.21.0-Source.tar.gz
+RUN yes | tar -xzvf eccodes-2.21.0-Source.tar.gz
+RUN mkdir build
+RUN cd build
+RUN yes | apt install cmake
+RUN yes | cmake -DCMAKE_INSTALL_PREFIX=~/tools/eccodes/ ../eccodes-2.21.0-Source
+RUN yes | make
+RUN yes | ctest
+RUN yes | make install
+
+COPY vassarlabs /home/vassarlabs
+
+COPY forecast/ /mnt/ext
+
+RUN curl https://repo.anaconda.com/pkgs/misc/gpgkeys/anaconda.asc | gpg --dearmor > conda.gpg
+
+RUN install -o root -g root -m 644 conda.gpg /usr/share/keyrings/conda-archive-keyring.gpg
+
+# Check whether fingerprint is correct (will output an error message otherwise)
+RUN gpg --keyring /usr/share/keyrings/conda-archive-keyring.gpg --no-default-keyring --fingerprint 34161F5BF5EB1D4BFBBB8F0A8AEB4F8B29D82806
+
+# Add our Debian repo
+RUN echo "deb [arch=amd64 signed-by=/usr/share/keyrings/conda-archive-keyring.gpg] https://repo.anaconda.com/pkgs/misc/debrepo/conda stable main" > /etc/apt/sources.list.d/conda.list
+
+RUN apt-get update
+
+RUN apt-get install conda
+
+#RUN source /opt/conda/etc/profile.d/conda.sh && 
+
+RUN /opt/conda/bin/conda env create --name met_work1 --file=/mnt/ext/met_work1.yml
+
+#RUN yes| echo 1 | tee /proc/sys/vm/overcommit_memory
+
+COPY vassarlabs/config/flink/flink-conf.yaml flink-1.14.0/conf/
+
+COPY vassarlabs/config/kafka/server.properties kafka_2.12-3.0.0/config/
+
+COPY /backendApp/target/backendApp-0.0.1-SNAPSHOT-jar-with-dependencies.jar /home/
+
+COPY backendAppRun.sh /home/
+
+CMD ["nohup","/bin/bash", "/home/backendAppRun.sh","&"]

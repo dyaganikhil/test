@@ -1,0 +1,24 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN yes | apt update && yes | ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && echo Asia/Kolkata > /etc/timezone && yes | apt-get install vim
+
+# Java 21 (Ubuntu 20.04 has no OpenJDK 21 package): Eclipse Temurin 21 from the Adoptium apt repository
+RUN apt-get install -y wget gnupg apt-transport-https \
+ && wget -qO - https://packages.adoptium.net/artifactory/api/gpg/key/public | gpg --dearmor > /usr/share/keyrings/adoptium.gpg \
+ && echo "deb [signed-by=/usr/share/keyrings/adoptium.gpg] https://packages.adoptium.net/artifactory/deb focal main" > /etc/apt/sources.list.d/adoptium.list \
+ && apt-get update && apt-get install -y temurin-21-jdk
+
+RUN yes | apt install r-base-core
+
+RUN R -e "install.packages('sp', dependencies=TRUE)"
+RUN R -e "install.packages('rgdal', dependencies=TRUE)"
+
+COPY vassarlabs /home/vassarlabs
+
+COPY forecast/ /mnt/ext
+
+COPY /springbootApp/target/springbootApp-0.0.1-SNAPSHOT.jar /home/
+
+CMD ["nohup", "java", "-jar","-Xmx2g","-Xms2g", "/home/springbootApp-0.0.1-SNAPSHOT.jar", "&"]
